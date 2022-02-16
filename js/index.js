@@ -15,10 +15,16 @@ const airports = {
 	LAX: [ 33.94, -118.41],
 	LHR: [ 51.47,   -0.46],
 	MEM: [ 35.04,  -89.98],
+	OGG: [ 20.89, -156.44],
 	ORY: [ 48.73,    2.37],
+	PER: [-31.94,  115.97],
+	PPT: [-17.56, -149.61],
 	SCL: [-33.39,  -70.79],
+	SEA: [ 47.45, -122.31],
 	SFO: [ 37.62, -122.38],
 	SYD: [-33.95,  151.18],
+	YYZ: [ 43.68,  -79.63],
+	PVG: [ 31.15,  121.81],
 };
 
 const fnsum = (a, b) => a + b;
@@ -74,7 +80,7 @@ const calcError = (time, dist, scale) => {
 
 const errorToColor = (error) => {
 	if (error >= 0) {
-		const alpha = Math.max(0, (1 - error)*255|0);
+		const alpha = Math.max(0, (1 - error*2)*255|0);
 		return `rgb(${alpha}, ${alpha}, 255)`;
 	}
 	const inv = 1/(error + 1) - 1;
@@ -88,7 +94,7 @@ const processFlights = (flights, calcDist) => {
 	for (const flight of flights) {
 		const { times, src, dst } = flight;
 		const avgTime = times.reduce(fnsum)/times.length;
-		const dist = calcDist(src, dst);
+		const dist = calcDist(airports[src], airports[dst]);
 		totalTime += avgTime;
 		totalDist += dist;
 		flight.avgTime = avgTime;
@@ -96,14 +102,14 @@ const processFlights = (flights, calcDist) => {
 	}
 	const scale = totalDist/totalTime;
 	for (const flight of flights) {
-		const { name, avgTime, dist } = flight;
+		const { name, avgTime, dist, src, dst } = flight;
 		const error = calcError(
 			avgTime,
 			dist,
 			scale,
 		);
 		const color = errorToColor(error*2);
-		console.log(` - %c${name}: ${(error*100).toFixed(1)}% off`, `color: ${color}`);
+		console.log(` - %c${name} (${src}-${dst}): ${(error*100).toFixed(1)}% off`, `color: ${color}`);
 	}
 };
 
@@ -119,8 +125,8 @@ const flights = [
 			13:22
 			13:05
 		`),
-		src: airports.GRU,
-		dst: airports.DOH,
+		src: 'GRU',
+		dst: 'DOH',
 	}, {
 		name: 'FWI70Q',
 		times: praseTimeList(`
@@ -129,8 +135,8 @@ const flights = [
 			08:43
 			08:34
 		`),
-		src: airports.ORY,
-		dst: airports.CAY,
+		src: 'ORY',
+		dst: 'CAY',
 	}, {
 		name: 'FDX1413',
 		times: praseTimeList(`
@@ -140,8 +146,8 @@ const flights = [
 			08:02
 			08:12
 		`),
-		src: airports.MEM,
-		dst: airports.HNL,
+		src: 'MEM',
+		dst: 'HNL',
 	}, {
 		name: 'UA863',
 		times: praseTimeList(`
@@ -153,8 +159,8 @@ const flights = [
 			14:34
 			14:45
 		`),
-		src: airports.SFO,
-		dst: airports.SYD,
+		src: 'SFO',
+		dst: 'SYD',
 	}, {
 		name: 'VIR9M',
 		times: praseTimeList(`
@@ -165,8 +171,8 @@ const flights = [
 			07:35
 			07:43
 		`),
-		src: airports.LHR,
-		dst: airports.JFK,
+		src: 'LHR',
+		dst: 'JFK',
 	}, {
 		name: 'QFA11',
 		times: praseTimeList(`
@@ -175,8 +181,8 @@ const flights = [
 			13:25
 			13:00
 		`),
-		src: airports.SYD,
-		dst: airports.LAX,
+		src: 'SYD',
+		dst: 'LAX',
 	}, {
 		name: 'FIN15',
 		times: praseTimeList(`
@@ -188,20 +194,62 @@ const flights = [
 			08:43
 			08:33
 		`),
-		src: airports.HEL,
-		dst: airports.JFK,
+		src: 'HEL',
+		dst: 'JFK',
 	}, {
 		name: 'KE251',
 		times: praseTimeList(`
 			07:29
 			07:15
 		`),
-		src: airports.ICN,
-		dst: airports.ANC,
+		src: 'ICN',
+		dst: 'ANC',
+	}, {
+		name: 'EK420',
+		times: praseTimeList(`
+			10:15
+			10:23
+			10:13
+		`),
+		src: 'DXB',
+		dst: 'PER',
+	}, {
+		name: 'HA30',
+		times: praseTimeList(`
+			05:45
+			05:24
+			05:02
+			05:03
+			05:15
+			05:19
+			05:23
+		`),
+		src: 'OGG',
+		dst: 'SEA',
+	}, {
+		name: 'UA115',
+		times: praseTimeList(`
+			08:14
+			07:59
+			07:57
+			08:06
+			08:06
+		`),
+		src: 'SFO',
+		dst: 'PPT',
+	}, {
+		name: 'CES7208',
+		times: praseTimeList(`
+			13:52
+			14:15
+			14:20
+		`),
+		src: 'YYZ',
+		dst: 'PVG',
 	}
 ];
 
-console.log('Globe:');
+console.log('Sphere:');
 processFlights(flights, globeDist);
 console.log('AE Map:');
 processFlights(flights, aeMapDist);
